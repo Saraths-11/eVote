@@ -12,11 +12,12 @@ if (!function_exists('str_ends_with')) {
 }
 
 // Database Configuration - Prefer Environment Variables (Render/Railway)
-$db_host = getenv("DB_HOST") ?: "nozomi.proxy.rlwy.net";
+// Latest Railway Public URL: mysql://root:aztVINSZfkAHqMcsyXTXrBahbmDmmCjY@shortline.proxy.rlwy.net:14736/railway
+$db_host = getenv("DB_HOST") ?: "shortline.proxy.rlwy.net";
 $db_user = getenv("DB_USER") ?: "root";
-$db_pass = getenv("DB_PASS") ?: "dQhZVcwPaJvcueVKZpOhdzBUGNPenymC";
+$db_pass = getenv("DB_PASS") ?: "aztVINSZfkAHqMcsyXTXrBahbmDmmCjY";
 $db_name = getenv("DB_NAME") ?: "railway";
-$db_port = getenv("DB_PORT") ?: 47899;
+$db_port = getenv("DB_PORT") ?: 14736;
 
 // Disable strict reporting for better compatibility
 mysqli_report(MYSQLI_REPORT_OFF);
