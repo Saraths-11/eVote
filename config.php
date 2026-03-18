@@ -11,18 +11,30 @@ if (!function_exists('str_ends_with')) {
     }
 }
 
-// Database Configuration - Prefer Environment Variables (Render/Railway)
-$db_host = getenv("DB_HOST") ?: "shortline.proxy.rlwy.net";
-$db_user = getenv("DB_USER") ?: "root";
-$db_pass = getenv("DB_PASS") ?: "aztVINSZfkAHqMcsyXTXrBahbmDmmCjY";
-$db_name = getenv("DB_NAME") ?: "railway";
-$db_port = getenv("DB_PORT") ?: 14736;
+// Database Connection via MYSQL_PUBLIC_URL (Railway)
+$url = getenv("MYSQL_PUBLIC_URL") ?: "mysql://root:aztVINSZfkAHqMcsyXTXrBahbmDmmCjY@shortline.proxy.rlwy.net:14736/railway";
+
+if (!$url) {
+    die("MYSQL_PUBLIC_URL not set");
+}
+
+$db = parse_url($url);
+
+if ($db === false) {
+    die("Invalid database URL format.");
+}
+
+$host = $db['host'] ?? '';
+$user = $db['user'] ?? '';
+$pass = $db['pass'] ?? '';
+$name = isset($db['path']) ? ltrim($db['path'], '/') : '';
+$port = $db['port'] ?? 3306;
 
 // Disable strict reporting for better compatibility
 mysqli_report(MYSQLI_REPORT_OFF);
 
 // Create connection
-$conn = new mysqli($db_host, $db_user, $db_pass, $db_name, (int)$db_port);
+$conn = new mysqli($host, $user, $pass, $name, (int)$port);
 
 // Check connection
 if ($conn->connect_error) {
