@@ -12,14 +12,23 @@ $msg = $_GET['msg'] ?? '';
 $error = $_GET['error'] ?? '';
 
 // Auto-fix: Ensure all required columns exist
-$conn->query("ALTER TABLE elections ADD COLUMN IF NOT EXISTS createdBy VARCHAR(50) DEFAULT 'admin'");
-$conn->query("ALTER TABLE elections ADD COLUMN IF NOT EXISTS visibleTo VARCHAR(50) DEFAULT 'students'");
-$conn->query("ALTER TABLE elections ADD COLUMN IF NOT EXISTS is_published TINYINT(1) DEFAULT 0");
-$conn->query("ALTER TABLE elections ADD COLUMN IF NOT EXISTS nomination_status ENUM('not_started', 'open', 'closed') DEFAULT 'not_started'");
-$conn->query("ALTER TABLE elections ADD COLUMN IF NOT EXISTS show_voters TINYINT(1) DEFAULT 0");
-$conn->query("ALTER TABLE elections ADD COLUMN IF NOT EXISTS registration_ended TINYINT(1) DEFAULT 0");
-$conn->query("ALTER TABLE elections ADD COLUMN IF NOT EXISTS nomination_ended TINYINT(1) DEFAULT 0");
-$conn->query("ALTER TABLE elections ADD COLUMN IF NOT EXISTS voting_ended TINYINT(1) DEFAULT 0");
+function add_column_if_not_exists($conn, $table, $column, $definition) {
+    $res = $conn->query("SHOW COLUMNS FROM $table LIKE '$column'");
+    if ($res && $res->num_rows == 0) {
+        try {
+            $conn->query("ALTER TABLE $table ADD COLUMN $column $definition");
+        } catch (Exception $e) {}
+    }
+}
+
+add_column_if_not_exists($conn, 'elections', 'createdBy', "VARCHAR(50) DEFAULT 'admin'");
+add_column_if_not_exists($conn, 'elections', 'visibleTo', "VARCHAR(50) DEFAULT 'students'");
+add_column_if_not_exists($conn, 'elections', 'is_published', "TINYINT(1) DEFAULT 0");
+add_column_if_not_exists($conn, 'elections', 'nomination_status', "ENUM('not_started', 'open', 'closed') DEFAULT 'not_started'");
+add_column_if_not_exists($conn, 'elections', 'show_voters', "TINYINT(1) DEFAULT 0");
+add_column_if_not_exists($conn, 'elections', 'registration_ended', "TINYINT(1) DEFAULT 0");
+add_column_if_not_exists($conn, 'elections', 'nomination_ended', "TINYINT(1) DEFAULT 0");
+add_column_if_not_exists($conn, 'elections', 'voting_ended', "TINYINT(1) DEFAULT 0");
 
 
 // Data Repair: Fix existing elections to match visibility requirements

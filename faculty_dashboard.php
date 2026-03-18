@@ -263,9 +263,8 @@ $message = '';
             <a href="?tab=rejected" class="<?php echo $current_tab == 'rejected' ? 'active' : ''; ?>">❌ Rejected
                 Students</a>
             <a href="?tab=withdrawn" class="<?php echo $current_tab == 'withdrawn' ? 'active' : ''; ?>">🚫 Withdrawn Participants</a>
-            <a href="?tab=monitor" class="<?php echo $current_tab == 'monitor' ? 'active' : ''; ?>">📊 Voting
-                Monitor</a>
-            <a href="?tab=results" class="<?php echo $current_tab == 'results' ? 'active' : ''; ?>">🏆 Results</a>
+
+            <a href="view_results.php" class="<?php echo $current_tab == 'results' ? 'active' : ''; ?>">🏆 Results</a>
             <a href="?tab=past" class="<?php echo $current_tab == 'past' ? 'active' : ''; ?>">🕰️ Past Elections</a>
         </nav>
         <div class="user-profile">
@@ -293,10 +292,17 @@ $message = '';
             // -----------------------------------
             case 'dashboard':
                 // Fetch stats
-                $active_elec = $conn->query("SELECT COUNT(*) as count FROM elections WHERE status IN ('active', 'Voting Active')")->fetch_assoc()['count'];
-                $pending_ver = $conn->query("SELECT COUNT(*) as count FROM participants WHERE status = 'Pending'")->fetch_assoc()['count'];
-                $total_elec = $conn->query("SELECT COUNT(*) as count FROM elections")->fetch_assoc()['count'];
-                $completed_elec = $conn->query("SELECT COUNT(*) as count FROM elections WHERE status IN ('Completed', 'Closed')")->fetch_assoc()['count'];
+                $res1 = $conn->query("SELECT COUNT(*) as count FROM elections WHERE status IN ('active', 'Voting Active')");
+                $active_elec = $res1 ? $res1->fetch_assoc()['count'] : 0;
+
+                $res2 = $conn->query("SELECT COUNT(*) as count FROM participants WHERE status = 'Pending'");
+                $pending_ver = $res2 ? $res2->fetch_assoc()['count'] : 0;
+
+                $res3 = $conn->query("SELECT COUNT(*) as count FROM elections");
+                $total_elec = $res3 ? $res3->fetch_assoc()['count'] : 0;
+
+                $res4 = $conn->query("SELECT COUNT(*) as count FROM elections WHERE status IN ('Completed', 'Closed')");
+                $completed_elec = $res4 ? $res4->fetch_assoc()['count'] : 0;
                 ?>
                 <div class="page-header">
                     <h1 class="page-title">Faculty Dashboard Overview</h1>
@@ -314,14 +320,7 @@ $message = '';
                         </div>
                     </a>
 
-                    <a href="?tab=monitor" style="text-decoration: none; color: inherit;">
-                        <div class="content-card" style="border-top: 4px solid #10b981;">
-                            <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">📊</div>
-                            <h3 style="margin: 0; color: #166534;">Active Voting</h3>
-                            <p style="font-size: 2rem; font-weight: 700; margin: 0.5rem 0;"><?php echo $active_elec; ?></p>
-                            <p style="color: #6b7280; font-size: 0.9rem;">Elections currently live.</p>
-                        </div>
-                    </a>
+
 
                     <a href="?tab=verify" style="text-decoration: none; color: inherit;">
                         <div class="content-card" style="border-top: 4px solid #f59e0b;">
@@ -596,174 +595,17 @@ $message = '';
                     <?php endif; ?>
                 </div>
 
-                <?php
-            // -----------------------------------
-            // CASE: VOTING MONITOR
-            // -----------------------------------
-            case 'monitor':
-                // Logic: Get active elections, show counts. Blind means no voter info.
-                $elections = $conn->query("SELECT id, title FROM elections WHERE status NOT IN ('Completed', 'Closed') OR voting_status = 'active'");
-                ?>
-                <div class="page-header">
-                    <h1 class="page-title">Voting Monitor</h1>
-                    <p>Live vote counts and participation tracking (Anonymous).</p>
-                </div>
 
-                <?php if ($elections && $elections->num_rows > 0): ?>
-                    <?php while ($elec = $elections->fetch_assoc()): ?>
-                    <div class="content-card">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                            <h3 style="margin: 0;"><?php echo htmlspecialchars($elec['title']); ?></h3>
-                        </div>
-                        <?php
-                        $eid = $elec['id'];
-                        // Get total votes
-                        $total_votes_res = $conn->query("SELECT COUNT(*) as count FROM votes WHERE election_id = $eid");
-                        $total_votes = $total_votes_res->fetch_assoc()['count'] ?: 0;
-                        // Calculate total votes and continue
-
-                        // Get candidates and vote counts
-                        $sql = "SELECT p.name, COUNT(v.id) as vote_count 
-                                FROM participants p 
-                                LEFT JOIN votes v ON p.id = v.candidate_id 
-                                WHERE p.election_id = $eid AND p.status = 'Approved'
-                                GROUP BY p.id";
-                        $cands = $conn->query($sql);
-                        ?>
-                        <div style="margin-bottom: 1rem; font-size: 0.9rem; color: #475569;">
-                            Total Votes Cast: <strong><?php echo $total_votes; ?></strong>
-                        </div>
-                        <div
-                            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-top: 1rem;">
-                            <?php while ($cand = $cands->fetch_assoc()):
-                                $percent = ($total_votes > 0) ? round(($cand['vote_count'] / $total_votes) * 100, 2) : 0;
-                                $percent = min(100, $percent);
-                                ?>
-                                <div style="background: #f9fafb; padding: 1.25rem; border-radius: 12px; border: 1px solid #e5e7eb;">
-                                    <div
-                                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                                        <span
-                                            style="font-weight: 600; color: var(--faculty-text);"><?php echo htmlspecialchars($cand['name']); ?></span>
-                                        <span
-                                            style="font-weight: 700; color: var(--faculty-primary);"><?php echo $cand['vote_count']; ?>
-                                            votes</span>
-                                    </div>
-                                    <div class="progress-bar-bg">
-                                        <div class="progress-bar-fill" style="width: <?php echo $percent; ?>%;"></div>
-                                    </div>
-                                    <div style="text-align: right; font-size: 0.75rem; color: #6b7280; margin-top: 0.25rem;">
-                                        <?php echo $percent; ?>% of total votes
-                                    </div>
-                                </div>
-                            <?php endwhile; ?>
-                        </div>
-                        <div style="margin-top: 2rem; text-align: center;">
-                            <a href="view_results.php?id=<?php echo $elec['id']; ?>" class="btn btn-sm btn-approve"
-                                style="padding: 0.6rem 1.2rem; text-decoration: none; border-radius: 6px; display: inline-flex; align-items: center; gap: 0.5rem;">
-                                📊 View Detailed Graphical Report
-                            </a>
-                        </div>
-                    <?php endwhile; ?>
-                <?php else: ?>
-                    <div class="content-card">
-                        <p style="text-align: center; color: #6b7280; padding: 2rem;">No active voting currently taking place.</p>
-                    </div>
-                <?php endif; ?>
-                <?php break; ?>
 
                 <?php
             // -----------------------------------
             // CASE: RESULTS
             // -----------------------------------
             case 'results':
-                $elections = $conn->query("SELECT id, title FROM elections WHERE status IN ('Completed', 'Closed') AND is_published = 1");
+                echo "<script>window.location.href='view_results.php';</script>";
+                exit();
+                break;
                 ?>
-                <div class="page-header">
-                    <h1 class="page-title">Election Results</h1>
-                    <p>Final standings and participation analysis for completed elections.</p>
-                </div>
-
-                <?php if ($elections->num_rows > 0): ?>
-                    <?php while ($elec = $elections->fetch_assoc()): ?>
-                        <div class="content-card">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                                <h3 style="margin: 0;"><?php echo htmlspecialchars($elec['title']); ?></h3>
-                            </div>
-                            <?php
-                            $eid = $elec['id'];
-                            // Get total votes
-                            $total_votes_res = $conn->query("SELECT COUNT(*) as count FROM votes WHERE election_id = $eid");
-                            $total_votes = $total_votes_res->fetch_assoc()['count'] ?: 0;
-                            // Get total votes
-
-                            $sql = "SELECT p.name, COUNT(v.id) as vote_count 
-                                    FROM participants p 
-                                    LEFT JOIN votes v ON p.id = v.candidate_id 
-                                    WHERE p.election_id = $eid AND p.status = 'Approved'
-                                    GROUP BY p.id 
-                                    ORDER BY vote_count DESC";
-                            $cands = $conn->query($sql);
-                            $highest = -1;
-                            $results_data = [];
-                            while ($row = $cands->fetch_assoc()) {
-                                $results_data[] = $row;
-                                if ($row['vote_count'] > $highest)
-                                    $highest = $row['vote_count'];
-                            }
-                            ?>
-                            <div style="margin-bottom: 1rem; font-size: 0.9rem; color: #475569;">
-                                Total Votes Cast: <strong><?php echo $total_votes; ?></strong>
-                            </div>
-                            <table class="data-table">
-                                <thead>
-                                    <tr>
-                                        <th>Candidate</th>
-                                        <th>Votes Received</th>
-                                        <th>Percentage (of Total)</th>
-                                        <th>Outcome</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php foreach ($results_data as $cand):
-                                        $percent = ($total_votes > 0) ? round(($cand['vote_count'] / $total_votes) * 100, 2) : 0;
-                                        $percent = min(100, $percent);
-                                        ?>
-                                        <tr>
-                                            <td><strong><?php echo htmlspecialchars($cand['name']); ?></strong></td>
-                                            <td><?php echo $cand['vote_count']; ?></td>
-                                            <td>
-                                                <div style="display: flex; align-items: center; gap: 0.75rem;">
-                                                    <div class="progress-bar-bg" style="flex: 1; margin: 0;">
-                                                        <div class="progress-bar-fill" style="width: <?php echo $percent; ?>%;"></div>
-                                                    </div>
-                                                    <span
-                                                        style="font-size: 0.85rem; font-weight: 600; min-width: 50px;"><?php echo $percent; ?>%</span>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <?php if ($cand['vote_count'] == $highest && $highest > 0): ?>
-                                                    <span class="status-badge" style="background:#fef3c7; color:#d97706;">WINNER 🏆</span>
-                                                <?php else: ?>
-                                                    -
-                                                <?php endif; ?>
-                                            </td>
-                                        </tr>
-                                    <?php endforeach; ?>
-                                </tbody>
-                            </table>
-                            <div style="margin-top: 2rem; text-align: center;">
-                                <a href="view_results.php?id=<?php echo $elec['id']; ?>" class="btn btn-sm btn-approve"
-                                    style="padding: 0.6rem 1.2rem; text-decoration: none; border-radius: 6px; display: inline-flex; align-items: center; gap: 0.5rem;">
-                                    📊 View Analytics & Graphs
-                                </a>
-                            </div>
-                        </div>
-                    <?php endwhile; ?>
-                <?php else: ?>
-                    <div class="content-card">No published election results yet.</div>
-                <?php endif; ?>
-                <?php break; ?>
-
                 <?php
             // -----------------------------------
             // CASE: PAST ELECTIONS

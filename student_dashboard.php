@@ -17,7 +17,8 @@ if (!$stmt_user) {
 }
 $stmt_user->bind_param("i", $user_id);
 $stmt_user->execute();
-$current_student = $stmt_user->get_result()->fetch_assoc();
+$result = $stmt_user->get_result();
+$current_student = $result ? $result->fetch_assoc() : null;
 
 if (!$current_student) {
     session_destroy();
@@ -682,14 +683,16 @@ if ($notif_res) {
                             $stmt_check = $conn->prepare("SELECT status, position FROM participants WHERE election_id = ? AND user_id = ?");
                             $stmt_check->bind_param("ii", $ele['id'], $user_id);
                             $stmt_check->execute();
-                            $p_data = $stmt_check->get_result()->fetch_assoc();
+                            $res = $stmt_check->get_result();
+                            $p_data = $res ? $res->fetch_assoc() : null;
                             $participant_status = $p_data['status'] ?? 'Not Enrolled';
                             $participant_position = $p_data['position'] ?? '';
 
                             $stmt_v = $conn->prepare("SELECT id FROM votes WHERE election_id = ? AND student_id = ?");
                             $stmt_v->bind_param("ii", $ele['id'], $user_id);
                             $stmt_v->execute();
-                            $has_voted = $stmt_v->get_result()->fetch_assoc();
+                            $res_v = $stmt_v->get_result();
+                            $has_voted = $res_v ? $res_v->fetch_assoc() : null;
                             ?>
 
                             <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-top: auto;">

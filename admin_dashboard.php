@@ -7,9 +7,14 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
 include 'config.php';
 
 // Fetch stats for the dashboard
-$total_elections = $conn->query("SELECT COUNT(*) as count FROM elections")->fetch_assoc()['count'];
-$active_elections = $conn->query("SELECT COUNT(*) as count FROM elections WHERE status != 'Closed'")->fetch_assoc()['count'];
-$pending_participants = $conn->query("SELECT COUNT(*) as count FROM participants WHERE status = 'Pending'")->fetch_assoc()['count'];
+$res1 = $conn->query("SELECT COUNT(*) as count FROM elections");
+$total_elections = $res1 ? $res1->fetch_assoc()['count'] : 0;
+
+$res2 = $conn->query("SELECT COUNT(*) as count FROM elections WHERE status != 'Closed'");
+$active_elections = $res2 ? $res2->fetch_assoc()['count'] : 0;
+
+$res3 = $conn->query("SELECT COUNT(*) as count FROM participants WHERE status = 'Pending'");
+$pending_participants = $res3 ? $res3->fetch_assoc()['count'] : 0;
 
 $can_create_election = ($active_elections == 0);
 ?>

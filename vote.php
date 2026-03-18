@@ -20,7 +20,8 @@ $user_id = $_SESSION['user_id'];
 $stmt = $conn->prepare("SELECT * FROM elections WHERE id = ?");
 $stmt->bind_param("i", $election_id);
 $stmt->execute();
-$election = $stmt->get_result()->fetch_assoc();
+$result = $stmt->get_result();
+$election = $result ? $result->fetch_assoc() : null;
 
 if (!$election) {
     die("Election not found.");
@@ -67,7 +68,8 @@ $voted = null;
 if ($check_vote) {
     $check_vote->bind_param("ii", $election_id, $user_id);
     $check_vote->execute();
-    $voted = $check_vote->get_result()->fetch_assoc();
+    $res = $check_vote->get_result();
+    $voted = $res ? $res->fetch_assoc() : null;
 }
 
 // Check if success flag is set

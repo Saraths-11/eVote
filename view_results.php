@@ -14,7 +14,14 @@ $is_faculty = ($role === 'faculty');
 $is_student = ($role === 'student');
 
 // Database Migration: Ensure result_view_type column exists
-$conn->query("ALTER TABLE elections ADD COLUMN IF NOT EXISTS result_view_type ENUM('table', 'pie') DEFAULT 'pie'");
+$check_column = $conn->query("SHOW COLUMNS FROM elections LIKE 'result_view_type'");
+if ($check_column && $check_column->num_rows == 0) {
+    try {
+        $conn->query("ALTER TABLE elections ADD COLUMN result_view_type ENUM('table', 'pie') DEFAULT 'pie'");
+    } catch (Exception $e) {
+        // Ignore if error occurs (e.g. if column was added by another process)
+    }
+}
 
 // Handle View Type Change (Admin only)
 if ($is_admin && isset($_POST['change_view_type']) && isset($_POST['view_type']) && isset($_GET['id'])) {
@@ -60,9 +67,9 @@ if (!$is_admin && !isset($_GET['id'])) {
 
 $election_id = isset($_GET['id']) ? intval($_GET['id']) : null;
 
-// Fetch Elections list if no ID provided (Admin only can see list of all results)
+// Fetch Elections list if no ID provided (Admin and Faculty can see list of all results)
 if (!$election_id) {
-    if (!$is_admin) {
+    if (!$is_admin && !$is_faculty) {
         header("Location: login.php");
         exit();
     }
@@ -480,7 +487,7 @@ if (!$election_id) {
 
                     <button onclick="window.print()" class="btn btn-secondary"
                         style="border: 1px solid #e2e8f0; background: white; color: #475569;">🖨️ Print Official Report</button>
-                    <a href="admin_dashboard.php" class="btn btn-primary">Return to Dashboard</a>
+                    <a href="<?php echo $is_admin ? 'admin_dashboard.php' : 'faculty_dashboard.php'; ?>" class="btn btn-primary">Return to Dashboard</a>
                 </div>
             <?php endif; ?>
         <?php endif; ?>

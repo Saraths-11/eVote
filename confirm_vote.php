@@ -30,7 +30,8 @@ $success = false;
 $stmt = $conn->prepare("SELECT * FROM elections WHERE id = ?");
 $stmt->bind_param("i", $election_id);
 $stmt->execute();
-$election = $stmt->get_result()->fetch_assoc();
+$result = $stmt->get_result();
+$election = $result ? $result->fetch_assoc() : null;
 
 if (!$election) {
     die("Election not found.");
@@ -41,27 +42,15 @@ if ($election['voting_status'] !== 'active') {
     die("Voting is not currently active for this election.");
 }
 
-// Ensure votes table exists with proper indexes for fast performance (Requirement 4)
-$conn->query("CREATE TABLE IF NOT EXISTS votes (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    election_id INT NOT NULL,
-    student_id INT NOT NULL,
-    candidate_id INT NOT NULL,
-    college_id VARCHAR(50),
-    voted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE KEY (election_id, student_id),
-    INDEX idx_candidate (candidate_id)
-)");
-
-// Silent migration to patch existing tables and prevent full table scans in real-time results (Requirement 4/7)
-$conn->query("ALTER TABLE votes ADD INDEX idx_candidate (candidate_id)");
+// Table existence checks moved to setup_db.php for better performance
 
 // Check if user has already voted
 $check_vote = $conn->prepare("SELECT id FROM votes WHERE election_id = ? AND student_id = ?");
 if ($check_vote) {
     $check_vote->bind_param("ii", $election_id, $user_id);
     $check_vote->execute();
-    if ($check_vote->get_result()->fetch_assoc()) {
+    $res = $check_vote->get_result();
+    if ($res && $res->fetch_assoc()) {
         header("Location: vote.php?id=$election_id");
         exit();
     }
@@ -71,7 +60,8 @@ if ($check_vote) {
 $cand_stmt = $conn->prepare("SELECT name, department, year, photo_path FROM participants WHERE id = ? AND election_id = ? AND status = 'Approved'");
 $cand_stmt->bind_param("ii", $candidate_id, $election_id);
 $cand_stmt->execute();
-$candidate = $cand_stmt->get_result()->fetch_assoc();
+$res = $cand_stmt->get_result();
+$candidate = $res ? $res->fetch_assoc() : null;
 
 if (!$candidate) {
     die("Selected candidate is invalid or not approved.");
@@ -81,7 +71,8 @@ if (!$candidate) {
 $user_stmt = $conn->prepare("SELECT college_id, password FROM users WHERE id = ?");
 $user_stmt->bind_param("i", $user_id);
 $user_stmt->execute();
-$user_data = $user_stmt->get_result()->fetch_assoc();
+$res = $user_stmt->get_result();
+$user_data = $res ? $res->fetch_assoc() : null;
 
 if (!$user_data) {
     die("User not found.");
@@ -114,7 +105,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
     $stmt_verify = $conn->prepare("SELECT accountFullName FROM users WHERE id = ?");
     $stmt_verify->bind_param("i", $user_id);
     $stmt_verify->execute();
-    $db_name = $stmt_verify->get_result()->fetch_assoc()['accountFullName'] ?? '';
+    $res = $stmt_verify->get_result();
+    $db_name = ($res && $row = $res->fetch_assoc()) ? $row['accountFullName'] : '';
 
     if (empty($input_name)) {
         $error = "Full Name is required.";
@@ -132,11 +124,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
         $error = "Please enter your Password to confirm vote.";
     } else {
         // Verify Password from users table
-        // We use the $college_id fetched from DB ($user_data['college_id']) verified by session
         $user_stmt = $conn->prepare("SELECT password FROM users WHERE id = ?");
         $user_stmt->bind_param("i", $user_id);
         $user_stmt->execute();
-        $user_data_verify = $user_stmt->get_result()->fetch_assoc();
+        $res = $user_stmt->get_result();
+        $user_data_verify = $res ? $res->fetch_assoc() : null;
 
         if (!$user_data_verify || !password_verify($input_password, $stored_password)) {
             $error = "Invalid password. Please try again.";
@@ -149,7 +141,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_vote'])) {
             // Double check vote again just before insert
             if ($check_vote) {
                 $check_vote->execute();
-                if ($check_vote->get_result()->fetch_assoc()) {
+                $res = $check_vote->get_result();
+                if ($res && $res->fetch_assoc()) {
                     die("You have already voted.");
                 }
             }

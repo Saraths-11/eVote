@@ -22,28 +22,33 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         } else {
             // SQL Fallback for Students/Faculty (needed for Selenium tests & non-Firebase users)
             $stmt = $conn->prepare("SELECT id, accountFullName, password, role FROM users WHERE email = ?");
-            $stmt->bind_param("s", $email);
-            $stmt->execute();
-            $result = $stmt->get_result();
+            if (!$stmt) {
+                $error = "Database error: " . $conn->error;
+            } else {
+                $stmt->bind_param("s", $email);
+                $stmt->execute();
+                $result = $stmt->get_result();
 
-            if ($row = $result->fetch_assoc()) {
-                if (password_verify($password, $row['password'])) {
-                    $_SESSION['user_id'] = $row['id'];
-                    $_SESSION['name'] = $row['accountFullName'];
-                    $_SESSION['email'] = $email;
-                    $_SESSION['role'] = $row['role'];
+                if ($row = $result->fetch_assoc()) {
+                    if (password_verify($password, $row['password'])) {
+                        $_SESSION['user_id'] = $row['id'];
+                        $_SESSION['name'] = $row['accountFullName'];
+                        $_SESSION['email'] = $email;
+                        $_SESSION['role'] = $row['role'];
 
-                    if ($row['role'] === 'admin') {
-                        header("Location: admin_dashboard.php");
-                    } elseif ($row['role'] === 'faculty') {
-                        header("Location: faculty_dashboard.php");
-                    } else {
-                        header("Location: student_dashboard.php");
+                        if ($row['role'] === 'admin') {
+                            header("Location: admin_dashboard.php");
+                        } elseif ($row['role'] === 'faculty') {
+                            header("Location: faculty_dashboard.php");
+                        } else {
+                            header("Location: student_dashboard.php");
+                        }
+                        exit();
                     }
-                    exit();
                 }
+                $error = "Invalid email or password.";
+                $stmt->close();
             }
-            $error = "Invalid email or password.";
         }
     }
 }

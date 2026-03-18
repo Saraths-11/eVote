@@ -21,7 +21,8 @@ $user_id = $_SESSION['user_id'];
 $stmt = $conn->prepare("SELECT * FROM elections WHERE id = ?");
 $stmt->bind_param("i", $election_id);
 $stmt->execute();
-$election = $stmt->get_result()->fetch_assoc();
+$result = $stmt->get_result();
+$election = $result ? $result->fetch_assoc() : null;
 
 if (!$election) {
     die("Election not found.");
@@ -48,7 +49,8 @@ $check_vote = $conn->prepare("SELECT id FROM votes WHERE election_id = ? AND stu
 if ($check_vote) {
     $check_vote->bind_param("ii", $election_id, $user_id);
     $check_vote->execute();
-    if ($check_vote->get_result()->fetch_assoc()) {
+    $res = $check_vote->get_result();
+    if ($res && $res->fetch_assoc()) {
         header("Location: vote.php?id=$election_id");
         exit();
     }
@@ -60,7 +62,8 @@ if ($check_vote) {
 $cand_stmt = $conn->prepare("SELECT name, department, year, photo_path FROM participants WHERE id = ? AND election_id = ? AND status = 'Approved'");
 $cand_stmt->bind_param("ii", $candidate_id, $election_id);
 $cand_stmt->execute();
-$candidate = $cand_stmt->get_result()->fetch_assoc();
+$res = $cand_stmt->get_result();
+$candidate = $res ? $res->fetch_assoc() : null;
 
 if (!$candidate) {
     die("Selected candidate is invalid or not approved.");
@@ -73,7 +76,8 @@ if (!$user_stmt) {
 }
 $user_stmt->bind_param("i", $user_id);
 $user_stmt->execute();
-$user_data = $user_stmt->get_result()->fetch_assoc();
+$res = $user_stmt->get_result();
+$user_data = $res ? $res->fetch_assoc() : null;
 $db_student_name = $user_data['accountFullName'] ?? 'Unknown Student';
 $college_id = $user_data['college_id'] ?? 'Not Set';
 
