@@ -1,0 +1,90 @@
+========================================================================
+TEST 5: FULL VOTING FLOW REPORT
+========================================================================
+
+--- TEST SOURCE CODE (5_voting_test.js) ---
+
+const { Builder, By, until } = require('selenium-webdriver');
+
+async function runVotingTest() {
+    let driver = await new Builder().forBrowser('chrome').build();
+    try {
+        console.log("-----------------------------------------");
+        console.log("STARTING TEST 5: VOTING FLOW (FULL)");
+        console.log("-----------------------------------------");
+
+        const testEmail = 'nomination_test@mca.ajce.in';
+        const testPassword = 'Password@123';
+        const testName = 'Selenium Candidate';
+
+        // 1. LOGIN
+        console.log("Step 1: Logging in as Student...");
+        await driver.get('http://localhost/evote/login.php');
+        await driver.findElement(By.name('email')).sendKeys(testEmail);
+        await driver.findElement(By.name('password')).sendKeys(testPassword);
+        await driver.findElement(By.css('button[type="submit"]')).click();
+        await driver.wait(until.urlContains('student_dashboard.php'), 5000);
+
+        // 2. NAVIGATE TO VOTE
+        let voteNowBtn = await driver.wait(
+            until.elementLocated(By.xpath("//*[self::a or self::button][contains(text(),'Vote Now') or contains(text(),'Vote')]")),
+            10000
+        );
+        await driver.executeScript("arguments[0].scrollIntoView();", voteNowBtn);
+        await voteNowBtn.click();
+        await driver.wait(until.urlContains('vote.php'), 5000);
+
+        // 3. CAST VOTE
+        console.log("Step 3: Selecting Candidate & Cast Vote...");
+        let candidateCard = await driver.wait(until.elementLocated(By.xpath("//div[contains(@class, 'candidate-card') and .//h3[contains(text(), '" + testName + "')]]")), 5000);
+        let castVoteBtn = await candidateCard.findElement(By.css('button.vote-btn'));
+        await castVoteBtn.click();
+        await driver.wait(until.urlContains('verify_vote.php'), 5000);
+
+        // 4. CONFIRM SELECTION
+        console.log("Step 4: Confirming Selection (Terms & Conditions)...");
+        let termsCheck = await driver.findElement(By.id('terms_agree'));
+        await driver.executeScript("arguments[0].click();", termsCheck);
+        let confirmBtn = await driver.findElement(By.id('submit_btn'));
+        await confirmBtn.click();
+        await driver.wait(until.urlContains('confirm_vote.php'), 5000);
+
+        // 5. IDENTITY VERIFICATION
+        console.log("Step 5: Identity Verification & Final Submission...");
+        await driver.findElement(By.id('name')).sendKeys(testName);
+        await driver.findElement(By.id('password')).sendKeys(testPassword);
+        let finalSubmitBtn = await driver.findElement(By.name('submit_vote'));
+        await finalSubmitBtn.click();
+
+        // 6. VERIFY SUCCESS
+        console.log("Step 6: Verifying Final Success...");
+        await driver.wait(until.elementLocated(By.xpath("//*[contains(text(), 'Vote Submitted Successfully!')]")), 10000);
+
+        console.log("-----------------------------------------");
+        console.log("TEST PASSED: FULL VOTING FLOW COMPLETED");
+        console.log("-----------------------------------------");
+
+    } catch (error) {
+        console.error("TEST FAILED:", error.message);
+    } finally {
+        await driver.quit();
+    }
+}
+
+runVotingTest();
+
+========================================================================
+
+--- TEST EXECUTION OUTPUT ---
+
+-----------------------------------------
+STARTING TEST 5: VOTING FLOW (FULL)
+-----------------------------------------
+Step 1: Logging in as Student...
+Step 3: Selecting Candidate & Cast Vote...
+Step 4: Confirming Selection (Terms & Conditions)...
+Step 5: Identity Verification & Final Submission...
+Step 6: Verifying Final Success...
+-----------------------------------------
+TEST PASSED: FULL VOTING FLOW COMPLETED
+-----------------------------------------

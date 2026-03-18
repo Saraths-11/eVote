@@ -1,0 +1,11 @@
+Array
+(
+    [0] => candidates
+    [1] => elections
+    [2] => notifications
+    [3] => participants
+    [4] => students
+    [5] => users
+    [6] => votes
+    [7] => voting_logs
+)

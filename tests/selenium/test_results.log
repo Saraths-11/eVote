@@ -1,0 +1,103 @@
+eVote Test Run — 3/9/2026, 9:35:44 PM
+=======================================================
+
+
+=======================================================
+       eVote Selenium Test Suite -- Full Run
+=======================================================
+
+
+=======================================================
+  STARTING TEST 1: Admin Login & Dashboard Surf
+=======================================================
+  > Navigating to login page...
+  > Entering admin credentials...
+  OK Logged in to Admin Dashboard.
+  > Navigating to Manage Elections...
+  OK Manage Elections loaded successfully.
+  > Navigating to View Participants...
+  OK View Participants loaded successfully.
+  > Navigating to Election Results...
+  OK Election Results loaded successfully.
+  > Navigating to Audit Logs...
+  OK Audit Logs loaded successfully.
+  > Logging out...
+  OK Logged out successfully.
+
+-------------------------------------------------------
+  TEST 1 PASSED: Admin Login & Dashboard Surf
+-------------------------------------------------------
+
+
+=======================================================
+  STARTING TEST 2: Student Registration & Dashboard Surf
+=======================================================
+  > Navigating to signup page...
+  > Registering new student: student1773072356057@mca.ajce.in
+  OK Registration submitted for student1773072356057@mca.ajce.in
+  > Logging in with new student account...
+
+-------------------------------------------------------
+  TEST 2 FAILED: Student Registration & Dashboard Surf
+     Reason: Waiting for URL to contain "student_dashboard.php"
+-------------------------------------------------------
+
+
+=======================================================
+  STARTING TEST 3: Create Election
+=======================================================
+  > Logging in as Admin...
+
+-------------------------------------------------------
+  TEST 3 FAILED: Create Election
+     Reason: Waiting for URL to contain "admin_dashboard.php"
+-------------------------------------------------------
+
+
+=======================================================
+  STARTING TEST 4: Candidate Nomination Submission
+=======================================================
+  > Logging in as candidate student...
+  OK Logged in to Student Dashboard.
+  > Looking for Register Now / Nominate button...
+
+-------------------------------------------------------
+  TEST 4 FAILED: Candidate Nomination Submission
+     Reason: Could not find Register Now/Nominate button on dashboard
+-------------------------------------------------------
+
+
+=======================================================
+  STARTING TEST 5: Full Voting Flow
+=======================================================
+  > Logging in as student voter...
+  OK Logged in to Student Dashboard.
+  > Locating Vote Now button on dashboard...
+
+-------------------------------------------------------
+  TEST 5 FAILED: Full Voting Flow
+     Reason: Waiting for element to be located By(xpath, //a[contains(text(),'Vote Now') or contains(text(),'Vote')][@href]
+-------------------------------------------------------
+
+
+=======================================================
+             TEST RESULTS SUMMARY
+=======================================================
+  Test 1: Admin Login & Dashboard Surf             SUCCESSFUL [PASS]
+  Test 2: Student Registration & Dashboard Surf    FAILED     [FAIL]
+     |- Waiting for URL to contain "student_dashboard.php"
+  Test 3: Create Election                          FAILED     [FAIL]
+     |- Waiting for URL to contain "admin_dashboard.php"
+  Test 4: Candidate Nomination Submission          FAILED     [FAIL]
+     |- Could not find Register Now/Nominate button on dashboard
+  Test 5: Full Voting Flow                         FAILED     [FAIL]
+     |- Waiting for element to be located By(xpath, //a[contains(text(),'Vote Now') or contains(text(),
+
+-------------------------------------------------------
+  Total Tests: 5  |  Passed: 1  |  Failed: 4
+-------------------------------------------------------
+
+  4 test(s) FAILED. See details above.
+
+  Full log saved to: C:\xampp\htdocs\evote\tests\selenium\test_results.log
+

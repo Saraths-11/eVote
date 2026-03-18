@@ -1,0 +1,100 @@
+========================================================================
+TEST 2: STUDENT REGISTRATION & DASHBOARD SURF REPORT
+========================================================================
+
+--- TEST SOURCE CODE (2_login_test.js) ---
+
+const { Builder, By, until } = require('selenium-webdriver');
+
+async function runStudentFlow() {
+    let driver = await new Builder().forBrowser('chrome').build();
+    try {
+        console.log("-----------------------------------------");
+        console.log("STARTING TEST 2: STUDENT REGISTRATION & SURF");
+        console.log("-----------------------------------------");
+
+        const testEmail = 'student' + Date.now() + '@mca.ajce.in';
+        const testPassword = 'Password@123';
+
+        // 1. REGISTRATION
+        console.log("Step 1: Registering new Student account...");
+        await driver.get('http://localhost/evote/signup.php');
+
+        await driver.findElement(By.id('name-input')).sendKeys('Selenium Student');
+        await driver.findElement(By.id('role-select')).sendKeys('Student');
+        await driver.findElement(By.id('email-input')).sendKeys(testEmail);
+
+        await driver.findElement(By.name('college_id')).sendKeys('99999');
+        await driver.findElement(By.name('department')).sendKeys('MCA');
+        await driver.findElement(By.name('year')).sendKeys('1');
+
+        await driver.findElement(By.id('password')).sendKeys(testPassword);
+        await driver.findElement(By.id('confirm_password')).sendKeys(testPassword);
+
+        await driver.findElement(By.css('button[type="submit"]')).click();
+        await driver.sleep(2000); // Wait for processing
+        console.log("SUCCESS: Registration submitted for " + testEmail);
+
+        // 2. LOGIN
+        console.log("Step 2: Logging in with new account...");
+        await driver.get('http://localhost/evote/login.php');
+        await driver.findElement(By.name('email')).sendKeys(testEmail);
+        await driver.findElement(By.name('password')).sendKeys(testPassword);
+        await driver.findElement(By.css('button[type="submit"]')).click();
+
+        // 3. SURF STUDENT DASHBOARD
+        await driver.wait(until.urlContains('student_dashboard.php'), 5000);
+        console.log("SUCCESS: Logged in to Student Dashboard.");
+
+        const studentSections = [
+            { name: 'Profile Settings', url: 'student_account.php' },
+            { name: 'Main Dashboard', url: 'student_dashboard.php' }
+        ];
+
+        for (let section of studentSections) {
+            console.log("Navigating to: " + section.name + "...");
+            await driver.get('http://localhost/evote/' + section.url);
+            await driver.wait(until.urlContains(section.url), 5000);
+            console.log("-> " + section.name + " loaded.");
+            await driver.sleep(1000);
+        }
+
+        // 4. LOGOUT
+        console.log("Step 3: Logging out...");
+        await driver.get('http://localhost/evote/logout.php');
+        await driver.wait(until.urlContains('login.php'), 5000);
+
+        console.log("-----------------------------------------");
+        console.log("TEST PASSED: STUDENT REGISTRATION & SURF");
+        console.log("Information: Account " + testEmail + " created, verified, and surffed.");
+        console.log("-----------------------------------------");
+
+    } catch (error) {
+        console.error("TEST FAILED:", error.message);
+    } finally {
+        await driver.quit();
+    }
+}
+
+runStudentFlow();
+
+========================================================================
+
+--- TEST EXECUTION OUTPUT ---
+
+-----------------------------------------
+STARTING TEST 2: STUDENT REGISTRATION & SURF
+-----------------------------------------
+Step 1: Registering new Student account...
+SUCCESS: Registration submitted for student1773075553047@mca.ajce.in
+Step 2: Logging in with new account...
+SUCCESS: Logged in to Student Dashboard.
+Navigating to: Profile Settings...
+-> Profile Settings loaded.
+Navigating to: Main Dashboard...
+-> Main Dashboard loaded.
+Step 3: Logging out...
+-----------------------------------------
+TEST PASSED: STUDENT REGISTRATION & SURF
+Information: Account student1773075553047@mca.ajce.in created, verified, and surffed.
+-----------------------------------------

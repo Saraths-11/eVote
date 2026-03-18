@@ -1,0 +1,16 @@
+-----------------------------------------
+STARTING TEST 2: STUDENT REGISTRATION & SURF
+-----------------------------------------
+Step 1: Registering new Student account...
+SUCCESS: Registration submitted for student1773075553047@mca.ajce.in
+Step 2: Logging in with new account...
+SUCCESS: Logged in to Student Dashboard.
+Navigating to: Profile Settings...
+-> Profile Settings loaded.
+Navigating to: Main Dashboard...
+-> Main Dashboard loaded.
+Step 3: Logging out...
+-----------------------------------------
+TEST PASSED: STUDENT REGISTRATION & SURF
+Information: Account student1773075553047@mca.ajce.in created, verified, and surffed.
+-----------------------------------------

@@ -1,0 +1,13 @@
+{
+  "scripts": {
+    "test": "node run_all_tests.js",
+    "test:1": "node 1_registration_test.js",
+    "test:2": "node 2_login_test.js",
+    "test:3": "node 3_create_election_test.js",
+    "test:4": "node 4_candidate_nomination_test.js",
+    "test:5": "node 5_voting_test.js"
+  },
+  "dependencies": {
+    "selenium-webdriver": "^4.41.0"
+  }
+}

@@ -1,0 +1,21 @@
+﻿-----------------------------------------
+STARTING TEST 3: CREATE ELECTION (LIVE)
+-----------------------------------------
+Step 1: Logging in...
+Step 2: Navigating to Create Election...
+Step 3: Filling Election Details...
+node : TEST FAILED: no such element: Unable 
+to locate element: {"method":"css 
+selector","selector":"*[name="title"]"}
+At line:1 char:1
++ node 3_create_election_test.js > 
+3_create_election_output.txt 2>&1
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ( 
+   TEST FAILED: no...name="title"]"}:String)  
+   [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandEr 
+   ror
+ 
+  (Session info: chrome=145.0.7632.160)

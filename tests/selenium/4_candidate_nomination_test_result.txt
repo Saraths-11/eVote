@@ -1,0 +1,103 @@
+========================================================================
+TEST 4: CANDIDATE NOMINATION REPORT
+========================================================================
+
+--- TEST SOURCE CODE (4_candidate_nomination_test.js) ---
+
+const { Builder, By, until } = require('selenium-webdriver');
+const path = require('path');
+const fs = require('fs');
+
+async function runNominationTest() {
+    let driver = await new Builder().forBrowser('chrome').build();
+    try {
+        console.log("-----------------------------------------");
+        console.log("STARTING TEST 4: CANDIDATE NOMINATION");
+        console.log("-----------------------------------------");
+
+        const testEmail = 'nomination_test@mca.ajce.in';
+        const testPassword = 'Password@123';
+
+        // 1. LOGIN (Skip registration, use pre-seeded test user to ensure all identity fields are present)
+        console.log("Step 1: Logging in as Candidate...");
+        await driver.get('http://localhost/evote/login.php');
+        await driver.findElement(By.name('email')).sendKeys(testEmail);
+        await driver.findElement(By.name('password')).sendKeys(testPassword);
+        await driver.findElement(By.css('button[type="submit"]')).click();
+        await driver.wait(until.urlContains('student_dashboard.php'), 5000);
+
+        // 3. NAVIGATE TO NOMINATION
+        console.log("Step 3: Navigating to Nomination Page...");
+        await driver.get('http://localhost/evote/student_dashboard.php');
+
+        // Find the "Register Now" or "Nominate" button for the first election
+        let nominateBtn = await driver.wait(until.elementLocated(By.xpath("//a[contains(text(), 'Register Now') or contains(text(), 'Nominate')]")), 5000);
+        await nominateBtn.click();
+
+        await driver.wait(until.urlContains('register_participant.php'), 5000);
+
+        // 4. ACCEPT RULES
+        console.log("Step 4: Accepting Nomination Rules...");
+        let rulesCheckbox = await driver.findElement(By.id('rulesCheckbox'));
+        await driver.executeScript("arguments[0].click();", rulesCheckbox);
+
+        // 5. FILL NOMINATION FORM
+        console.log("Step 5: Filling Identity Details & Uploading Files...");
+        await driver.findElement(By.name('name')).sendKeys('Selenium Candidate');
+        await driver.findElement(By.name('gender')).sendKeys('Male');
+        await driver.findElement(By.name('dob')).sendKeys('2000-01-01');
+
+        // Create a dummy image for uploads
+        const dummyPath = path.resolve(__dirname, 'dummy.png');
+        if (!fs.existsSync(dummyPath)) {
+            fs.writeFileSync(dummyPath, 'dummy data');
+        }
+
+        await driver.findElement(By.name('photo')).sendKeys(dummyPath);
+        await driver.findElement(By.name('proof_file')).sendKeys(dummyPath);
+        await driver.findElement(By.name('signature')).sendKeys(dummyPath);
+
+        // 6. SUBMIT
+        console.log("Step 6: Submitting Nomination...");
+        let submitBtn = await driver.findElement(By.id('submitBtn'));
+        await driver.executeScript("arguments[0].disabled = false; arguments[0].click();", submitBtn);
+
+        await driver.sleep(2000); // Wait for reload
+
+        try {
+            let errorMsg = await driver.findElement(By.className('alert-error')).getText();
+            console.error("PAGE ERROR: " + errorMsg);
+        } catch (e) { /* No error banner found */ }
+
+        await driver.wait(until.elementLocated(By.xpath("//*[contains(text(), 'Pending') or contains(text(), 'Successfully')]")), 8000);
+
+        console.log("-----------------------------------------");
+        console.log("TEST PASSED: NOMINATION SUBMITTED");
+        console.log("Information: Candidate registration submitted and is Pending Approval.");
+        console.log("-----------------------------------------");
+
+    } catch (error) {
+        console.error("TEST FAILED:", error.message);
+    } finally {
+        await driver.quit();
+    }
+}
+
+runNominationTest();
+
+========================================================================
+
+--- TEST EXECUTION OUTPUT ---
+
+-----------------------------------------
+STARTING TEST 4: CANDIDATE NOMINATION
+-----------------------------------------
+Step 1: Logging in as Candidate...
+Step 3: Navigating to Nomination Page...
+Step 4: Accepting Nomination Rules...
+Step 5: Filling Identity Details & Uploading Files...
+Step 6: Submitting Nomination...
+-----------------------------------------
+TEST PASSED: NOMINATION SUBMITTED
+Information: Candidate registration submitted and is Pending Approval.
+-----------------------------------------
