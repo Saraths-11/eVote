@@ -10,16 +10,19 @@ if (!function_exists('str_ends_with')) {
         return $needle !== '' && substr($haystack, -strlen($needle)) === $needle;
     }
 }
-$db_host = 'sql101.infinityfree.com';
-$db_user = 'if0_41422050';
-$db_pass = 'sarathsk2004';
-$db_name = 'if0_41422050_evote';
 
-// Disable strict reporting for InfinityFree compatibility
+// Database Configuration - Prefer Environment Variables (Render/Railway)
+$db_host = getenv("DB_HOST") ?: "nozomi.proxy.rlwy.net";
+$db_user = getenv("DB_USER") ?: "root";
+$db_pass = getenv("DB_PASS") ?: "dQhZVcwPaJvcueVKZpOhdzBUGNPenymC";
+$db_name = getenv("DB_NAME") ?: "railway";
+$db_port = getenv("DB_PORT") ?: 47899;
+
+// Disable strict reporting for better compatibility
 mysqli_report(MYSQLI_REPORT_OFF);
 
 // Create connection
-$conn = new mysqli($db_host, $db_user, $db_pass, $db_name);
+$conn = new mysqli($db_host, $db_user, $db_pass, $db_name, $db_port);
 
 // Check connection
 if ($conn->connect_error) {
@@ -28,6 +31,6 @@ if ($conn->connect_error) {
 
 // Global check for mysqlnd (get_result support)
 if (!function_exists('mysqli_stmt_get_result')) {
-    die("CRITICAL ERROR: Your hosting does not support 'mysqli_stmt::get_result()'. Please enable the 'mysqlnd' driver in your PHP settings (InfinityFree -> Alter PHP Config -> check mysqlnd).");
+    die("CRITICAL ERROR: Your hosting does not support 'mysqli_stmt::get_result()'. If you are on Render, this should be pre-installed. Please check your PHP extensions.");
 }
 ?>
