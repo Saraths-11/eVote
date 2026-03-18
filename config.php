@@ -12,7 +12,6 @@ if (!function_exists('str_ends_with')) {
 }
 
 // Database Configuration - Prefer Environment Variables (Render/Railway)
-// Latest Railway Public URL: mysql://root:aztVINSZfkAHqMcsyXTXrBahbmDmmCjY@shortline.proxy.rlwy.net:14736/railway
 $db_host = getenv("DB_HOST") ?: "shortline.proxy.rlwy.net";
 $db_user = getenv("DB_USER") ?: "root";
 $db_pass = getenv("DB_PASS") ?: "aztVINSZfkAHqMcsyXTXrBahbmDmmCjY";
@@ -23,7 +22,7 @@ $db_port = getenv("DB_PORT") ?: 14736;
 mysqli_report(MYSQLI_REPORT_OFF);
 
 // Create connection
-$conn = new mysqli($db_host, $db_user, $db_pass, $db_name, $db_port);
+$conn = new mysqli($db_host, $db_user, $db_pass, $db_name, (int)$db_port);
 
 // Check connection
 if ($conn->connect_error) {
